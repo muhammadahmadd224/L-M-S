@@ -7,7 +7,7 @@ pool:
 steps:
 # Step 1: Create file in artifact staging directory
 - script: |
-    echo 'testing file to copy to ec2' > $BUILD_ARTIFACTSTAGINGDIRECTORY/file-to-ec2.txt
+    echo 'testing file to copy to ec2' > $(Build.ArtifactStagingDirectory)/file-to-ec2.txt
   displayName: 'Create test file'
 
 # Step 2: Publish artifact
@@ -22,11 +22,11 @@ steps:
     artifact: 'ec2File'
     path: '$(Pipeline.Workspace)'
 
-# Step 4: Download your SSH private key from Secure Files
+# Step 4: Download SSH private key from Secure Files
 - task: DownloadSecureFile@1
   name: sshKey
   inputs:
-    secureFile: 'azure.pem'   # <-- must exactly match the uploaded secure file name
+    secureFile: 'azure.pem'   # must match the name in Secure Files
 
 # Step 5: Setup SSH key
 - script: |
@@ -40,14 +40,8 @@ steps:
 # Step 6: Copy file to EC2
 - script: |
     echo "Copying file to EC2..."
+    ls -l $(Pipeline.Workspace)/ec2File   # <-- debug: list files first
     scp -o StrictHostKeyChecking=no \
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
         ec2-user@3.87.158.38:/home/ec2-user/
   displayName: 'Copy file to EC2'
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.BinariesDirectory)'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-    replaceExistingArchive: true
