@@ -27,7 +27,7 @@ steps:
     echo "Copying file to EC2..."
     scp -o StrictHostKeyChecking=no \
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
-        ubuntu@<EC2-PUBLIC-IP>:/home/ubuntu/
+        ec2-user@ip-172-31-16-49P>:/home/ec2-user/
   displayName: 'Copy file to EC2'
   env:
     # inject SSH key from pipeline variable
