@@ -7,12 +7,13 @@ pool:
 steps:
 # Step 1: Create the file
 - script: |
-    echo 'testing file to copy to ec2' > file-to-ec2.txt
+    echo 'testing file to copy to ec2' >
+     $(Build.ArtifactStagingDirectory)/file-to-ec2.txt
   displayName: 'Create test file'
 
 # Step 2: Publish the file as an artifact
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: 'file-to-ec2.txt'   # file you created
-    artifact: 'ec2File'             # artifact name shown in UI
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifact: 'ec2File'
 
