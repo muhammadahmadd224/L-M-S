@@ -20,7 +20,7 @@ steps:
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: 'ec2File'
-    path: '$(Pipeline.Workspace)'
+    path: '$(Pipeline.Workspace)/ec2File'
 
 # Step 4: Download SSH private key from Secure Files
 - task: DownloadSecureFile@1
@@ -41,17 +41,10 @@ steps:
 - script: |
     echo "Copying file to EC2..."
     echo "Listing artifact contents:"
-    ls -R $(Pipeline.Workspace)/ec2File || echo "❌ Artifact folder not found"
+    ls -R $(Pipeline.Workspace)/ec2File
 
-    # adjust path if file is inside a 'drop' subfolder
-    if [ -f "$(Pipeline.Workspace)/ec2File/file-to-ec2.txt" ]; then
-      FILEPATH="$(Pipeline.Workspace)/ec2File/file-to-ec2.txt"
-    elif [ -f "$(Pipeline.Workspace)/ec2File/drop/file-to-ec2.txt" ]; then
-      FILEPATH="$(Pipeline.Workspace)/ec2File/drop/file-to-ec2.txt"
-    else
-      echo "❌ file-to-ec2.txt not found in artifact!"
-      exit 1
-    fi
-
-    scp -o StrictHostKeyChecking=no "$FILEPATH" ec2-user@3.87.158.38:/home/ec2-user/
+    scp -o StrictHostKeyChecking=no \
+        $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
+        ec2-user@3.87.158.38:/home/ec2-user/
   displayName: 'Copy file to EC2'
+
