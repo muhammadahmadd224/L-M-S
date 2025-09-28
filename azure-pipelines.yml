@@ -5,41 +5,42 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-# Step 1: Create the file in the artifact staging directory
+# Step 1: Create file in artifact staging directory
 - script: |
     echo 'testing file to copy to ec2' > $BUILD_ARTIFACTSTAGINGDIRECTORY/file-to-ec2.txt
   displayName: 'Create test file'
 
-# Step 2: Publish the staging directory as an artifact
+# Step 2: Publish artifact
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)'
     artifact: 'ec2File'
-    
-# Step 3: Download artifact in the same or another job
+
+# Step 3: Download artifact (optional if in same job, but good practice)
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: 'ec2File'
     path: '$(Pipeline.Workspace)'
 
-# Step 4: Copy file to EC2 using scp
-- script: |
-    echo "Copying file to EC2..."
-    scp -o StrictHostKeyChecking=no \
-        $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
-        ec2-user@ip-172-31-16-49P>:/home/ec2-user/
-  displayName: 'Copy file to EC2'
-  env:
-    # inject SSH key from pipeline variable
-    # (Azure DevOps → Library → Secure files OR pipeline variables)
-    SSH_PRIVATE_KEY: $(ec2SshKey)
+# Step 4: Download your SSH private key from Secure Files
+- task: DownloadSecureFile@1
+  name: sshKey
+  inputs:
+    secureFile: ''   # <-- upload this in DevOps > Library > Secure files
 
-# Step 5: Setup ssh-agent (needed for scp to authenticate)
+# Step 5: Setup SSH agent
 - script: |
     mkdir -p ~/.ssh
-    echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    cp $(sshKey.secureFilePath) ~/.ssh/id_rsa
     chmod 600 ~/.ssh/id_rsa
     eval "$(ssh-agent -s)"
     ssh-add ~/.ssh/id_rsa
   displayName: 'Setup SSH key'
 
+# Step 6: Copy file to EC2 (replace PUBLIC_IP below)
+- script: |
+    echo "Copying file to EC2..."
+    scp -o StrictHostKeyChecking=no \
+        $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
+        ec2-user@3.87.158.38:/home/ec2-user/
+  displayName: 'Copy file to EC2'
