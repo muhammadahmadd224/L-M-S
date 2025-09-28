@@ -44,4 +44,10 @@ steps:
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
         ec2-user@<PUBLIC_IP>:/home/ec2-user/
   displayName: 'Copy file to EC2'
-
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.BinariesDirectory)'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
