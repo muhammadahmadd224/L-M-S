@@ -40,7 +40,8 @@ steps:
 # Step 6: Copy file to EC2
 - script: |
     echo "Copying file to EC2..."
-    ls -l $(Pipeline.Workspace)/ec2File   # <-- debug: list files first
+    ls -l $(Pipeline.Workspace)/ec2File
+    chmod 700 StrictHostKeyChecking=no \  # <-- debug: list files first
     scp -o StrictHostKeyChecking=no \
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
         ec2-user@3.87.158.38:/home/ec2-user/
