@@ -16,7 +16,7 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)'
     artifact: 'ec2File'
 
-# Step 3: Download artifact (optional if in same job, but good practice)
+# Step 3: Download artifact
 - task: DownloadPipelineArtifact@2
   inputs:
     artifact: 'ec2File'
@@ -26,9 +26,9 @@ steps:
 - task: DownloadSecureFile@1
   name: sshKey
   inputs:
-    secureFile: ''   # <-- upload this in DevOps > Library > Secure files
+    secureFile: 'azure.pem'   # <-- must exactly match the uploaded secure file name
 
-# Step 5: Setup SSH agent
+# Step 5: Setup SSH key
 - script: |
     mkdir -p ~/.ssh
     cp $(sshKey.secureFilePath) ~/.ssh/id_rsa
@@ -37,10 +37,11 @@ steps:
     ssh-add ~/.ssh/id_rsa
   displayName: 'Setup SSH key'
 
-# Step 6: Copy file to EC2 (replace PUBLIC_IP below)
+# Step 6: Copy file to EC2
 - script: |
     echo "Copying file to EC2..."
     scp -o StrictHostKeyChecking=no \
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
-        ec2-user@3.87.158.38:/home/ec2-user/
+        ec2-user@<PUBLIC_IP>:/home/ec2-user/
   displayName: 'Copy file to EC2'
+
