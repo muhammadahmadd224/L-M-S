@@ -5,13 +5,12 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-# Step 1: Create the file
+# Step 1: Create the file in the artifact staging directory
 - script: |
-    echo 'testing file to copy to ec2' >
-     $(Build.ArtifactStagingDirectory)/file-to-ec2.txt
+    echo 'testing file to copy to ec2' > $BUILD_ARTIFACTSTAGINGDIRECTORY/file-to-ec2.txt
   displayName: 'Create test file'
 
-# Step 2: Publish the file as an artifact
+# Step 2: Publish the staging directory as an artifact
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)'
