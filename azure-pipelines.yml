@@ -26,7 +26,7 @@ steps:
 - task: DownloadSecureFile@1
   name: sshKey
   inputs:
-    secureFile: 'azure.pem'   # must match the name in Secure Files
+    secureFile: 'azure.pem'   # must match the name uploaded in Secure Files
 
 # Step 5: Setup SSH key
 - script: |
@@ -40,9 +40,18 @@ steps:
 # Step 6: Copy file to EC2
 - script: |
     echo "Copying file to EC2..."
-    ls -l $(Pipeline.Workspace)/ec2File
-    chmod 700 StrictHostKeyChecking=no \  # <-- debug: list files first
-    scp -o StrictHostKeyChecking=no \
-        $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
-        ec2-user@3.87.158.38:/home/ec2-user/
+    echo "Listing artifact contents:"
+    ls -R $(Pipeline.Workspace)/ec2File || echo "❌ Artifact folder not found"
+
+    # adjust path if file is inside a 'drop' subfolder
+    if [ -f "$(Pipeline.Workspace)/ec2File/file-to-ec2.txt" ]; then
+      FILEPATH="$(Pipeline.Workspace)/ec2File/file-to-ec2.txt"
+    elif [ -f "$(Pipeline.Workspace)/ec2File/drop/file-to-ec2.txt" ]; then
+      FILEPATH="$(Pipeline.Workspace)/ec2File/drop/file-to-ec2.txt"
+    else
+      echo "❌ file-to-ec2.txt not found in artifact!"
+      exit 1
+    fi
+
+    scp -o StrictHostKeyChecking=no "$FILEPATH" ec2-user@3.87.158.38:/home/ec2-user/
   displayName: 'Copy file to EC2'
