@@ -15,4 +15,31 @@ steps:
   inputs:
     targetPath: '$(Build.ArtifactStagingDirectory)'
     artifact: 'ec2File'
+    
+# Step 3: Download artifact in the same or another job
+- task: DownloadPipelineArtifact@2
+  inputs:
+    artifact: 'ec2File'
+    path: '$(Pipeline.Workspace)'
+
+# Step 4: Copy file to EC2 using scp
+- script: |
+    echo "Copying file to EC2..."
+    scp -o StrictHostKeyChecking=no \
+        $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
+        ubuntu@<EC2-PUBLIC-IP>:/home/ubuntu/
+  displayName: 'Copy file to EC2'
+  env:
+    # inject SSH key from pipeline variable
+    # (Azure DevOps → Library → Secure files OR pipeline variables)
+    SSH_PRIVATE_KEY: $(ec2SshKey)
+
+# Step 5: Setup ssh-agent (needed for scp to authenticate)
+- script: |
+    mkdir -p ~/.ssh
+    echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    eval "$(ssh-agent -s)"
+    ssh-add ~/.ssh/id_rsa
+  displayName: 'Setup SSH key'
 
