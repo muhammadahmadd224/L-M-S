@@ -45,6 +45,6 @@ steps:
 
     scp -o StrictHostKeyChecking=no \
         $(Pipeline.Workspace)/ec2File/file-to-ec2.txt \
-        ec2-user@3.87.158.38:/home/ec2-user/
+        ec2-user@54.147.47.226:/home/ec2-user/
   displayName: 'Copy file to EC2'
 
